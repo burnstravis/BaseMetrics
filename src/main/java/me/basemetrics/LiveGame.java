@@ -24,8 +24,6 @@ public class LiveGame {
     private LiveGameTeam home_team;
     private LiveGameTeam away_team;
 
-
-
     @JsonCreator
     public LiveGame(
             @JsonProperty("gamePk") int game_id,
