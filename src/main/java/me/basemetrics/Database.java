@@ -32,7 +32,7 @@ public class Database {
         String user = dotenv.get("DB_USER");
         String pass = dotenv.get("DB_PASS");
 
-        String url = "jdbc:mysql://" + host + ":" + port + "/" + name;
+        String url = "jdbc:mysql://" + host + ":" + port + "/" + name + "?rewriteBatchedStatements=true";
 
         System.out.println("Connecting to: " + url + " as " + user);
 

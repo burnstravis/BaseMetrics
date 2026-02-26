@@ -20,6 +20,9 @@ public class LiveGameService {
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    public static final boolean TODAY = true;
+    public static final boolean YESTERDAY = false;
+
     private static final String UPSERT_SQL = """
         INSERT INTO live_games (
             game_id, home_team, away_team, home_score, 
@@ -36,17 +39,22 @@ public class LiveGameService {
             last_updated=NOW()
         """;
 
-    public String getAllLiveGamesUrl(){
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    public String getAllLiveGamesUrl(boolean day){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter;
+
+        if(day == YESTERDAY){
+            now = LocalDateTime.now().minusDays(1);
+        }
+        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = now.format(formatter);
         return "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + formattedDate;
     }
 
     //returns list of all gameIds for the day
-    public List<Integer> getAllLiveGameIds() throws Exception{
-        String url = getAllLiveGamesUrl();
+    public List<Integer> getAllLiveGameIds(boolean day) throws Exception{
+        String url = getAllLiveGamesUrl(day);
 
         HttpRequest request = HttpRequest.newBuilder(URI.create(url)).build();
         var response = CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
@@ -60,9 +68,13 @@ public class LiveGameService {
             JsonNode gamesNode = dateEntry.path("games");
             for (JsonNode game : gamesNode) {
                 int id = game.path("gamePk").asInt();
-                if (id > 0) {
+                if(day == YESTERDAY && !game.path("status").path("detailedState").asText().equals("Final") && id > 0){
                     gameIds.add(id);
                 }
+                else if (day == TODAY && id > 0){
+                    gameIds.add(id);
+                }
+
             }
         }
         return gameIds;

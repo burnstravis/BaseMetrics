@@ -13,9 +13,14 @@ public class LiveGameRunner {
         String envMode = (args.length > 0) ? args[0] : "local";
         System.setProperty("env.mode", envMode);
 
+        long start = System.nanoTime();
+
         try {
-            List<Integer> liveGameIds = liveGameService.getAllLiveGameIds();
-            System.out.println("Live games today: " + liveGameIds.size());
+            List<Integer> liveGameIds = liveGameService.getAllLiveGameIds(LiveGameService.TODAY);
+            liveGameIds.addAll(liveGameService.getAllLiveGameIds(LiveGameService.YESTERDAY));
+
+            System.out.println("All Games today and Ongoing Games from yesterday: " + liveGameIds.size());
+
             List<LiveGame> games;
 
             try (var scope = StructuredTaskScope.open()) {
@@ -39,6 +44,10 @@ public class LiveGameRunner {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        long end = System.nanoTime();
+        double durationSeconds = (end - start) / 1_000_000_000.0;
+        System.out.printf("Execution finished in: %.3f seconds%n", durationSeconds);
     }
 
     private static void saveData(List<LiveGame> liveGames) {
