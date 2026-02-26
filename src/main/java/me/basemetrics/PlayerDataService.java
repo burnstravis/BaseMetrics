@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 public class PlayerDataService {
@@ -58,7 +59,6 @@ public class PlayerDataService {
     }
 
     public void savePlayersBatch(List<Player> players, Connection conn, int teamId) throws SQLException {
-        conn.setAutoCommit(false);
 
         try (PreparedStatement pstmt = conn.prepareStatement(UPSERT_SQL)) {
             for (Player p : players) {
@@ -127,11 +127,25 @@ public class PlayerDataService {
             }
 
             pstmt.executeBatch(); //Executes all 40 inserts in one trip
-            conn.commit();        // Finalizes the transaction
 
-        } catch (SQLException e) {
-            conn.rollback();      // Undo if anything fails
-            throw e;
+        }
+    }
+
+    public void deleteNonRosteredPlayers(int teamId, List<Integer> currentPlayerIds, Connection conn) throws SQLException {
+        if (currentPlayerIds.isEmpty()) return;
+
+        String placeholders = String.join(",", Collections.nCopies(currentPlayerIds.size(), "?"));
+        String sql = "DELETE FROM players WHERE team_id = ? AND player_id NOT IN (" + placeholders + ")";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, teamId);
+            for (int i = 0; i < currentPlayerIds.size(); i++) {
+                pstmt.setInt(i + 2, currentPlayerIds.get(i));
+            }
+            int deletedCount = pstmt.executeUpdate();
+            if (deletedCount > 0) {
+                System.out.println("Removed " + deletedCount + " players no longer on the roster.");
+            }
         }
     }
 

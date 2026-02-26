@@ -1,6 +1,7 @@
 package me.basemetrics;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.StructuredTaskScope;
 
@@ -9,6 +10,7 @@ public class PlayerDataRunner {
     private final TeamDataService teamService = new TeamDataService();
     private final PlayerDataService playerService = new PlayerDataService();
 
+    private static int allIds;
 
     public void syncTeam(int teamId) {
 
@@ -35,8 +37,21 @@ public class PlayerDataRunner {
 
             //Connect to DataBase
             try (Connection conn = Database.getConnection()) {
-                //Save batch of player data on foreign key teamId
-                playerService.savePlayersBatch(players, conn, teamId);
+                conn.setAutoCommit(false);
+
+                try {
+                    //Save batch of player data on foreign key teamId
+                    playerService.savePlayersBatch(players, conn, teamId);
+                    //remove players from table on teamId that is not included in the update
+                    playerService.deleteNonRosteredPlayers(teamId, playerIds, conn);
+                    allIds += players.size();
+
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                    System.err.println("Transaction rolled back for team " + teamId);
+                    throw e;
+                }
             }
 
             System.out.println("Successfully synced " + players.size() + " players for team " + teamId);
@@ -61,10 +76,11 @@ public class PlayerDataRunner {
                         147, 158
         }; //158 159 for AL NL all-stars
 
-
         //Each Team
         for (int id : teamIds) {
             runner.syncTeam(id); //Run player data for each team
         }
+        System.out.println("Total players inserted: " + allIds);
+
     }
 }
