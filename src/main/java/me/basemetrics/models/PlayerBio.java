@@ -1,17 +1,19 @@
-package me.basemetrics;
+package me.basemetrics.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.sql.Date;
 
+@Entity
+@Table(name = "player_bios")
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 @com.fasterxml.jackson.annotation.JsonRootName(value = "people")
 public class PlayerBio {
 
-
-
+    @Id
     private int player_id;
     private String primaryNumber;
     private Date birthDate;
@@ -22,6 +24,8 @@ public class PlayerBio {
     private int weight;
     private boolean active;
     private String fullFMLName;
+
+    protected PlayerBio() {}
 
     @JsonCreator
     public PlayerBio(@JsonProperty("id") int player_id,

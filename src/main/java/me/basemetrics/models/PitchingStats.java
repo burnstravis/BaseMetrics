@@ -1,9 +1,11 @@
-package me.basemetrics;
+package me.basemetrics.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Embeddable;
 
+@Embeddable
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PitchingStats {
 
@@ -15,7 +17,7 @@ public class PitchingStats {
     private int p_earned_runs;
     private float p_whip;
     private int p_batters_faced;
-    private int p_homer_runs;
+    private int p_home_runs;
     private int p_walks;
     private int p_strikeouts;
     private int p_games;
@@ -23,6 +25,8 @@ public class PitchingStats {
     private int p_gidp;
     private int p_sb;
     private int p_hit_by_pitch;
+
+    protected PitchingStats() {}
 
     @JsonCreator
     public PitchingStats(
@@ -51,7 +55,7 @@ public class PitchingStats {
         this.p_earned_runs = p_earned_runs;
         this.p_whip = p_whip;
         this.p_batters_faced = p_batters_faced;
-        this.p_homer_runs = p_homer_runs;
+        this.p_home_runs = p_homer_runs;
         this.p_walks = p_walks;
         this.p_strikeouts = p_strikeouts;
         this.p_games = p_games;
@@ -86,7 +90,7 @@ public class PitchingStats {
         return p_batters_faced;
     }
     public int getP_homer_runs() {
-        return p_homer_runs;
+        return p_home_runs;
     }
     public int getP_walks() {
         return p_walks;

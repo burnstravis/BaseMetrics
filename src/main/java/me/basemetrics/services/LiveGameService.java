@@ -1,21 +1,27 @@
-package me.basemetrics;
+package me.basemetrics.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.basemetrics.models.LiveGame;
+import me.basemetrics.repositories.LiveGameRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.StructuredTaskScope;
 
+@Service
 public class LiveGameService {
+
+    @Autowired
+    private LiveGameRepository liveGameRepository;
 
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -23,22 +29,35 @@ public class LiveGameService {
     public static final boolean TODAY = true;
     public static final boolean YESTERDAY = false;
 
-    private static final String UPSERT_SQL = """
-        INSERT INTO live_games (
-            game_id, home_team, away_team, home_score, 
-            away_score, inning, inning_half, 
-            outs, batter, pitcher, on_first, 
-            on_second, on_third, home_errors, 
-            away_errors, last_updated
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
-        ON DUPLICATE KEY UPDATE
-            home_score=VALUES(home_score), away_score=VALUES(away_score), inning=VALUES(inning), 
-            inning_half=VALUES(inning_half), outs=VALUES(outs), batter=VALUES(batter), 
-            pitcher=VALUES(pitcher), on_first=VALUES(on_first), on_second=VALUES(on_second), 
-            on_third=VALUES(on_third), home_errors=VALUES(home_errors), away_errors=VALUES(away_errors), 
-            last_updated=NOW()
-        """;
 
+    //@Scheduled(initialDelay = 5000, fixedRate = 15000)    @Transactional
+    public void updateAllLiveGames() {
+        try {
+            List<Integer> liveGameIds = getAllLiveGameIds(TODAY);
+            liveGameIds.addAll(getAllLiveGameIds(YESTERDAY));
+
+            if (liveGameIds.isEmpty()) return;
+
+            try (var scope = StructuredTaskScope.open()) {
+                List<StructuredTaskScope.Subtask<LiveGame>> tasks = liveGameIds.stream()
+                        .map(gameId -> scope.fork(() -> fetchLiveGameData(gameId)))
+                        .toList();
+
+                scope.join();
+
+                List<LiveGame> games = tasks.stream()
+                        .filter(t -> t.state() == StructuredTaskScope.Subtask.State.SUCCESS)
+                        .map(StructuredTaskScope.Subtask::get)
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+
+                liveGameRepository.saveAll(games);
+                System.out.println("Successfully updated " + games.size() + " live games.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating live games: " + e.getMessage());
+        }
+    }
 
     public String getAllLiveGamesUrl(boolean day){
         LocalDateTime now = LocalDateTime.now();
@@ -99,46 +118,6 @@ public class LiveGameService {
         }
 
         return null;
-    }
-
-    //inserts and updated into SQL table
-    public void saveLiveGameBatch(List<LiveGame> liveGames, Connection conn) throws SQLException {
-
-        conn.setAutoCommit(false);
-
-        try (PreparedStatement pstmt = conn.prepareStatement(UPSERT_SQL)) {
-            for (LiveGame g : liveGames) {
-
-                pstmt.setInt(1, g.getGame_id());
-                pstmt.setString(2, g.getHome_team_name());
-                pstmt.setString(3, g.getAway_team_name());
-                pstmt.setInt(4, g.getHome_score());
-                pstmt.setInt(5, g.getAway_score());
-
-                pstmt.setInt(6, g.getInning());
-                pstmt.setString(7, g.getInning_half());
-                pstmt.setInt(8, g.getOuts());
-                pstmt.setString(9, g.getBatter());
-                pstmt.setString(10, g.getPitcher());
-
-                pstmt.setBoolean(11, g.isOn_first());
-                pstmt.setBoolean(12, g.isOn_second());
-                pstmt.setBoolean(13, g.isOn_third());
-
-                pstmt.setInt(14, g.getHome_errors());
-                pstmt.setInt(15, g.getAway_errors());
-
-                pstmt.addBatch();
-            }
-
-            pstmt.executeBatch();
-            conn.commit();
-
-        } catch (SQLException e) {
-            conn.rollback();      // Undo if anything fails
-            throw e;
-        }
-
     }
 
 }

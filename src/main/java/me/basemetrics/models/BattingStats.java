@@ -1,9 +1,11 @@
-package me.basemetrics;
+package me.basemetrics.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Embeddable;
 
+@Embeddable
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BattingStats {
 
@@ -25,6 +27,8 @@ public class BattingStats {
     private int games_played;
     private int runs;
     private int gidp;
+
+    protected BattingStats() {}
 
     @JsonCreator
     public BattingStats(

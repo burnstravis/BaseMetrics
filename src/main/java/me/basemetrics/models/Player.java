@@ -1,23 +1,37 @@
-package me.basemetrics;
+package me.basemetrics.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "players")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Player {
 
+    @Transient
     private static final ObjectMapper INTERNAL_MAPPER = new ObjectMapper();
 
-    private int player_id;
+    @Id
+    @Column(name = "player_id")
+    private int playerId;
     private String name;
-    private int team_id;
+
+    @Column(name = "team_id")
+    private int teamId;
     private String position;
     private String image_url;
+
+    @Embedded
     private BattingStats battingStats;
+
+    @Embedded
     private PitchingStats pitchingStats;
+
+    protected Player() {}
 
     @JsonCreator
     public Player(
@@ -27,9 +41,9 @@ public class Player {
             @JsonProperty("primaryPosition") JsonNode posNode, // array of position details
             @JsonProperty("stats") JsonNode statsNode // array of stats
     ) {
-        this.player_id = player_id;
+        this.playerId = player_id;
         this.name = name;
-        this.team_id = teamNode != null ? teamNode.path("id").asInt() : 0;
+        this.teamId = teamNode != null ? teamNode.path("id").asInt() : 0;
         this.position = posNode != null ? posNode.path("abbreviation").asText() : "N/A";
         this.image_url = "https://img.mlbstatic.com/mlb-photos/image/upload/v1/people/" + player_id + "/headshot/67/current.png";
 
@@ -50,11 +64,16 @@ public class Player {
 
 
 
-    public int getPlayer_id() { return player_id; }
+    public int getPlayer_id() { return playerId; }
     public String getName() { return name; }
-    public int getTeam_id() { return team_id; }
+    public int getTeam_id() { return teamId; }
     public String getPosition() { return position; }
     public String getImage_url() { return image_url; }
     public BattingStats getBattingStats() { return battingStats; }
     public PitchingStats getPitchingStats() { return pitchingStats; }
+
+    public void setTeam_id(int knownTeamId) {
+
+        teamId = knownTeamId;
+    }
 }
