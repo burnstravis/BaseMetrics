@@ -6,24 +6,46 @@
     <title>Base Metrics</title>
     <link rel="stylesheet" href="styles.css" />
     <script type = "text/javascript" src="script.js"></script>
-</head>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function()
+        {
+            allLiveGames();
+        }, false);
+
+    </script></head>
 <body>
     <main>
 
         <div class="navbar">
             <div class="home-nav-page">Base Metrics</div>
+
+            <div class="multi-nav-page">
+                <div class="games-nav-page">Games</div>
+                <div class="standings-nav-page">Standings</div>
+                <div class="players-nav-page">Players</div>
+                <div class="teams-nav-page">Teams</div>
+            </div>
+
         </div>
 
-        <div class="container">
-            <div class="welcome-container">
-                <h2 class ="welcome-message">Welcome to Base Metrics</h2>
-            </div>
-            <div class="recent-performers">
+        <div class="welcome-container">
 
-            </div>
+            <h1 id="welcome-title">Your All-Inclusive MLB Data Hub</h1>
+            <p id="welcome-message">Track live games, monitor player performance, and follow league standings.  Everything you need to know about the game you love.</p>
+            <button id="welcome-stats-button">Find Players</button>
+            <button id="welcome-games-button">Track Games</button>
+
         </div>
 
+        <div class="games-container">
+            <div class="games-header">
+                <h1 id="games-title">Live Games</h1>
+                <button id="games-view-all-button">View All Games</button>
+                <p id="games-message">View all the action happening right now</p>
+            </div>
 
+            <div class="games-all-cards"></div>
+        </div>
 
     </main>
 </body>
