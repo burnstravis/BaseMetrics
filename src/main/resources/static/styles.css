@@ -33,6 +33,7 @@ h1 {
 
 .home-nav-page {
     cursor: pointer;
+    text-decoration: none;
 }
 .home-nav-page:hover {
     cursor: pointer;
@@ -52,13 +53,27 @@ h1 {
 
 .games-nav-page, .players-nav-page, .players-nav-page,
 .standings-nav-page, .teams-nav-page{
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: rgba(0, 0, 0, 0.7);
     display: inline-block;
     align-items: center;
     justify-content: center;
     padding: .5rem;
     cursor: pointer;
+    text-decoration: none;
+}
+
+.contact-nav-page {
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 1.3rem;
+    padding: 1.2rem;
+    text-decoration: none;
+}
+
+.contact-nav-page:hover {
+    transition: .3s ease;
+    transform: scale(1.3);
 }
 .games-nav-page:hover, .players-nav-page:hover,
 .standings-nav-page:hover, .teams-nav-page:hover{
@@ -142,6 +157,11 @@ h1 {
     border: 2px solid transparent;
     font-size: 1rem;
     cursor: pointer;
+}
+
+#welcome-games-button:hover, #welcome-stats-button:hover {
+    transition: .3s ease;
+    transform: scale(1.05);
 }
 
 #welcome-games-button:hover, #welcome-stats-button:hover {
@@ -240,4 +260,36 @@ h1 {
     color: #666;
     border-top: 1px solid #eee;
     padding-top: 10px;
+}
+
+#contact-title {
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 4rem;
+    font-weight: bolder;
+}
+
+.contact-container {
+    color: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+}
+
+#contact-git, #contact-email{
+    font-style: italic;
+    text-decoration: none;
+    font-size: 1.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#contact-email-link, #contact-git-link {
+    padding-left: 5px;
+    display: inline-block;
+    text-decoration: none;
+    color: #00935e;
+    font-style: normal;
+    font-weight: bold;
+}
+#contact-email-link:hover, #contact-git-link:hover {
+    transform: scale(1.1);
+    transition: ease .3s;
+    cursor: pointer;
 }
