@@ -157,6 +157,7 @@ h1 {
     border: 2px solid transparent;
     font-size: 1rem;
     cursor: pointer;
+    text-decoration: none;
 }
 
 #welcome-games-button:hover, #welcome-stats-button:hover {
