@@ -227,9 +227,9 @@ h1 {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    width: 280px;         /* Fixed width for a card look */
+    width: 280px;
     padding: 1.5rem;
-    border-left: 5px solid rgb(0, 147, 94); /* Team-neutral blue accent */
+    border-left: 5px solid rgb(0, 147, 94);
     transition: transform 0.2s;
 }
 
@@ -247,7 +247,7 @@ h1 {
 
 .team-text-wrapper {
     display: flex;
-    flex-direction: column; /* Keeps Name and Location stacked vertically */
+    flex-direction: column;
 }
 
 .team-logo {
@@ -263,8 +263,8 @@ h1 {
 
 .team-info {
     display: flex;
-    align-items: center; /* Vertically centers the text with the logo */
-    justify-content: space-between; /* Pushes text to left and logo to right */
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     padding: 10px;
 }
@@ -282,19 +282,56 @@ h1 {
 
 
 .team-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 30px 30px 30px;
     align-items: center;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 5px 0;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.grid-header {
+    display: grid;
+    grid-template-columns: 1fr 30px 30px 30px;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.team-name {
+    font-weight: bold;
+}
+.team-score, .team-hits, .team-errors{
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.9);
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "lnum", "tnum";
+    vertical-align: middle;
+}
+
+/*runs hits errors labels*/
+.label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    font-size: .5rem;
+    padding: 1rem;
 }
 
 
 .game-venue {
     margin-top: 15px;
     font-size: 0.8rem;
-    color: #666;
+    color: rgba(0, 0, 0, 0.6);
     border-top: 1px solid #eee;
     padding-top: 10px;
 }
@@ -453,3 +490,52 @@ input[type="text"]:focus {
 #searchForm {
     display: flex;
 }
+
+
+.faceoff-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.at-bat-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+}
+
+.diamond-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+
+.base {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #ddd;
+    transform: rotate(45deg);
+    border: 1px solid #000000;
+}
+
+.base.active {
+    background-color: #ffcc00;
+    border-color: #00987e;
+}
+
+.home-plate {
+    position: absolute;
+    bottom: 2px;
+    left: 21px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    clip-path: polygon(50% 100%, 0% 40%, 0% 0%, 100% 0%, 100% 40%);
+}
+
+.second { top: 5px; left: 20px; }
+.third  { top: 20px; left: 5px; }
+.first  { top: 20px; left: 35px; }

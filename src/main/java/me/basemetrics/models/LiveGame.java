@@ -22,7 +22,9 @@ public class LiveGame {
     private String away_team_name;
 
     private int home_score;
+    private int home_hits;
     private int away_score;
+    private int away_hits;
     private int inning;
     private String inning_half;
     private int outs;
@@ -66,10 +68,13 @@ public class LiveGame {
             this.away_team_name = boxTeams.path("away").path("team").path("name").asText("Away");
             this.away_score = lineTeams.path("away").path("runs").asInt();
             this.away_errors = lineTeams.path("away").path("errors").asInt();
+            this.away_hits = lineTeams.path("away").path("hits").asInt();
+
 
             this.home_team_name = boxTeams.path("home").path("team").path("name").asText("Home");
             this.home_score = lineTeams.path("home").path("runs").asInt();
             this.home_errors = lineTeams.path("home").path("errors").asInt();
+            this.home_hits = lineTeams.path("home").path("hits").asInt();
         }
     }
 
@@ -79,6 +84,12 @@ public class LiveGame {
     public String getAway_team_name() { return away_team_name; }
     public int getHome_score() { return home_score; }
     public int getAway_score() { return away_score; }
+    public int getHome_hits() {
+        return home_hits;
+    }
+    public int getAway_hits() {
+        return away_hits;
+    }
     public int getInning() { return inning; }
     public String getInning_half() { return inning_half; }
     public int getOuts() { return outs; }

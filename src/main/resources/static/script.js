@@ -1,66 +1,143 @@
 //placeholder
-const gamesData = [
-    {
-        gameId: 123456,
-        status: "Live",
-        inning: "Bottom 5th",
-        venue: "Fenway Park",
-        teams: {
-            away: { abbreviation: "NYY", runs: 3, hits: 5 },
-            home: { abbreviation: "BOS", runs: 4, hits: 7 }
-        }
-    },
-    {
-        gameId: 789012,
-        status: "Final",
-        inning: "9th",
-        venue: "Dodger Stadium",
-        teams: {
-            away: { abbreviation: "SFG", runs: 1, hits: 4 },
-            home: { abbreviation: "LAD", runs: 6, hits: 10 }
-        }
-    },
-    {
-        gameId: 345678,
-        status: "Scheduled",
-        inning: "7:10 PM",
-        venue: "Wrigley Field",
-        teams: {
-            away: { abbreviation: "STL", runs: 0, hits: 0 },
-            home: { abbreviation: "CHC", runs: 0, hits: 0 }
+
+const API_BASE_URL = "http://localhost:8080/api";
+
+async function getData(endpoint) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return null;
+    }
+}
+
+function getGameStatus(game) {
+
+    if (!game.inning || game.inning === 0 || (!game.inning_half && game.home_score === 0 && game.away_score === 0)) {
+        return "Scheduled";
+    }
+
+    const inningNum = game.inning || 0;
+    const inningHalf = game.inning_half;
+    const outs = game.outs || 0;
+
+
+    if (inningNum >= 9) {
+        const half = inningHalf.toLowerCase();
+        if ((half === "bottom" && game.home_score > game.away_score) ||
+            (half === "top" && outs === 3 && game.home_score > game.away_score) ||
+            (half === "bottom" && outs === 3)) {
+            return "Final";
         }
     }
-];
 
-function allLiveGames() {
+
+    return `
+            <span class="inning">${inningHalf} ${inningNum}</span>
+            <span class="outs">${outs} out${outs === 1 ? '' : 's'}</span>
+            `;
+}
+
+function createGameCard(game, status){
+
+    return `
+            <span class="game-card">
+                <div class="game-status">
+                   ${status}
+                </div>
+                <div class="grid-header">
+                       <span class="spacer"></span> <span class="label">R</span>
+                       <span class="label">H</span>
+                       <span class="label">E</span>
+                </div>
+                <div class="team-row">
+                    <span class="team-name">${game.away_team_name}</span>
+                    <span class="team-score">${game.away_score}</span>
+                    <span class="team-hits">${game.away_hits}</span>
+                    <span class="team-errors">${game.away_errors}</span>
+                </div>
+                <div class="team-row">
+                    <span class="team-name">${game.home_team_name}</span>
+                    <span class="team-score">${game.home_score}</span>
+                    <span class="team-hits">${game.home_hits}</span>
+                    <span class="team-errors">${game.home_errors}</span>
+                </div>
+                <div class="faceoff-field">
+                    <div class="at-bat-info">
+                        <span class="hitter"><strong>B:</strong> ${game.batter}</span>
+                        <span class="pitcher"><strong>P:</strong> ${game.pitcher}</span>
+                    </div>
+
+                    <div class="diamond-wrapper">
+                        <div class="base second ${game.on_second ? 'active' : ''}"></div>
+                        <div class="base third ${game.on_third ? 'active' : ''}"></div>
+                        <div class="base first ${game.on_first ? 'active' : ''}"></div>
+                        <div class="home-plate"></div>
+                    </div>
+                </div>
+                
+                <div class="game-venue">Venue</div>
+            </div>
+        `;
+}
+
+async function renderAllLiveGames() {
+    const gamesData = await getData("/games/live");
+
+    if(!gamesData) {
+        console.log("error");
+        return;
+    }
+
     const results = document.querySelector(".games-all-cards");
 
     if (!results) {
         return;
     }
 
-    results.innerHTML = "";
+    const hour = new Date().getHours();
 
-    gamesData.forEach(game => {
-        const gameCard = `
-            <span class="game-card">
-                <div class="game-status">
-                    <span class="status">${game.status}</span>
-                    <span class="inning">${game.inning}</span>
-                </div>
-                <div class="team-row">
-                    <span class="team-name">${game.teams.away.abbreviation}</span>
-                    <span class="team-score">${game.teams.away.runs}</span>
-                </div>
-                <div class="team-row">
-                    <span class="team-name">${game.teams.home.abbreviation}</span>
-                    <span class="team-score">${game.teams.home.runs}</span>
-                </div>
-                <div class="game-venue">${game.venue}</div>
-            </div>
-        `;
-        results.innerHTML += gameCard;
-    });
+    const scheduled = [];
+    const live = [];
+    const finals = [];
+
+    try {
+        gamesData.forEach(game => {
+            const status = getGameStatus(game);
+            const inning = game.inning || 0;
+            const isFinal = status === "Final" && inning > 0;
+            const isLive = status !== "Scheduled" && !isFinal;
+            const isScheduled = status === "Scheduled";
+
+            if (hour < 5) {
+                if (isFinal) {
+                    finals.push({ game, card: createGameCard(game, status) });
+                } else if (isLive) {
+                    live.push({ game, card: createGameCard(game, status) });
+                }
+            } else {
+                if (isLive) {
+                    live.push({ game, card: createGameCard(game, status) });
+                } else if (isScheduled) {
+                    scheduled.push({ game, card: createGameCard(game, status) });
+                } else if (isFinal) {
+                    finals.push({ game, card: createGameCard(game, status) });
+                }
+            }
+
+        });
+    } catch (e) {
+        console.log(e);
+    }
+
+    live.sort((a, b) => b.game.inning - a.game.inning || (b.game.outs || 0) - (a.game.outs || 0));
+    scheduled.sort((a, b) => a.game.home_team.localeCompare(b.game.home_team));
+    const displayOrder = [...live, ...(hour >= 5 ? scheduled : []), ...finals];
+    displayOrder.forEach(item => {
+        results.innerHTML += item.card;
+    })
 }
 
 const standingsData = [
