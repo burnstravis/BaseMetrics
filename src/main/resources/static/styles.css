@@ -215,7 +215,7 @@ h1 {
     color: rgba(0, 0, 0, 0.7);
 }
 
-.games-all-cards {
+.games-all-cards, .teams-all-cards {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -223,7 +223,7 @@ h1 {
     width: 100%;
 }
 
-.game-card {
+.game-card, .team-card {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -231,6 +231,42 @@ h1 {
     padding: 1.5rem;
     border-left: 5px solid rgb(0, 147, 94); /* Team-neutral blue accent */
     transition: transform 0.2s;
+}
+
+.team-card{
+    position: relative;
+    justify-content: center;
+    align-content: center;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-image: linear-gradient(rgba(44, 44, 44, 0.8), rgba(0, 0, 0, 0.8));
+    color: #eff0f1;
+    display: flex;
+}
+
+.team-text-wrapper {
+    display: flex;
+    flex-direction: column; /* Keeps Name and Location stacked vertically */
+}
+
+.team-logo {
+    background-color: transparent;
+    background-image: linear-gradient(rgba(168, 168, 168, 0.2), rgba(255, 255, 255, 0.2));
+    display: flex;
+    align-items: center;
+    width: 128px;
+    height: 128px;
+    object-fit: contain;
+    order: 2;
+}
+
+.team-info {
+    display: flex;
+    align-items: center; /* Vertically centers the text with the logo */
+    justify-content: space-between; /* Pushes text to left and logo to right */
+    width: 100%;
+    padding: 10px;
 }
 
 .game-status {
@@ -293,4 +329,127 @@ h1 {
     transform: scale(1.1);
     transition: ease .3s;
     cursor: pointer;
+}
+
+#standings-title, #players-title, #teams-title {
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 4rem;
+    font-weight: bolder;
+    padding: 1rem;
+}
+
+#standings-options, #players-options, #searchInput {
+    width: 155px;
+    padding: .8rem;
+    margin-left: 10px;
+    margin-bottom: 15px;
+
+    appearance: none;
+    -webkit-appearance: none;
+    font-size: 1rem;
+    background-color: #ffffff;
+    color: #00935e;
+    display: flex;
+    cursor: pointer;
+    border: 1px solid rgb(0, 147, 94);
+    border-radius: 8px;
+}
+#standings-options:focus, #players-options:focus, #searchInput:focus {
+    outline: none;
+    border-color: rgb(0, 147, 94);
+    transition: ease .3s;
+}
+
+#standings-options:active, #players-options:active, #searchInput:active{
+    outline: none;
+    box-shadow: 0 0 12px rgba(0, 147, 94, 0.6);
+}
+
+#standings-options:hover, #players-options:hover, #searchInput:hover {
+    transform: scale(1.05);
+    transition: ease .3s;
+}
+
+.standings-all-tables, .players-all-tables {
+    padding: 1rem;
+    font-size: 1.5rem;
+    display: block;
+    font-weight: normal;
+}
+
+.division-name {
+    color: #00935e;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+}
+
+.standings-table td, .standings-table th.text-left,
+.players-table td, .players-table th.text-left{
+    padding: .3rem;
+    text-align: left;
+}
+
+.standings-table th, .players-table th {
+    text-align: center;
+}
+
+.standings-table th:last-child,
+.standings-table td:last-child,
+.players-table th:last-child,
+.players-table td:last-child{
+    border-right: none;
+}
+
+.standings-table th,
+.standings-table td,
+.players-table th,
+.players-table td {
+    border-right: 1px solid rgb(0, 147, 94);
+    padding: .3rem;
+    border-bottom: 1px solid rgb(0, 147, 94);
+}
+
+.standings-table, .players-table {
+    color: rgba(0, 0, 0, 0.7);
+    border-collapse: collapse;
+}
+
+
+.standings-table tbody tr:hover, .players-table tbody tr:hover  {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"] {
+
+    width: 155px;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    justify-content: center;
+    align-items: center;
+    -webkit-appearance: none;
+    font-size: 1rem;
+    padding: .8rem;
+    margin-left: 32px;
+    background-color: #ffffff;
+    color: #00935e;
+    border: 1px solid rgb(0, 147, 94);
+    display: flex;
+    cursor: pointer;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgb(0, 147, 94);
+}
+
+#filter-name, #filter-pos {
+    font-size: 1.2rem;
+    color: rgba(0, 0, 0, 0.8);
+    padding-left: 1rem;
+    margin-bottom: 5px;
+}
+
+#searchForm {
+    display: flex;
 }

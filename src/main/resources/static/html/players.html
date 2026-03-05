@@ -6,6 +6,24 @@
     <title>Base Metrics - Players</title>
     <link rel="stylesheet" href="../styles.css" />
     <script type = "text/javascript" src="../script.js"></script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function()
+        {
+            renderPlayerLeaders();
+
+            const searchForm = document.getElementById('searchForm');
+            const searchInput = document.getElementById('searchInput');
+
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const searchTerm = searchInput.value.trim().toLowerCase();
+
+                //call search func
+            });
+
+        }, false);
+    </script>
 </head>
 <body>
 <main>
@@ -21,6 +39,41 @@
         </div>
 
         <a class="contact-nav-page" href="contact.html">Contact Us</a>
+
+    </div>
+
+    <div class="players">
+
+        <h1 id="players-title">
+            Player Statistics
+        </h1>
+
+        <form id="searchForm">
+
+            <h1 id="filter-name">Filter by Name</h1>
+            <input type="text" id="searchInput" placeholder="name" autocomplete="off" autocapitalize="off" />
+            <label for="players-options"></label>
+            <h1 id="filter-pos">Filter by Position</h1>
+            <select name="players-options" id ="players-options">
+                <option value="positions">All Positions</option>
+                <option value="3">1st Base</option>
+                <option value="4">2nd Base</option>
+                <option value="5">3rd Base</option>
+                <option value="6">Short Stop</option>
+                <option value="7">Left Field</option>
+                <option value="8">Center Field</option>
+                <option value="9">Right Field</option>
+                <option value="10">Outfield</option>
+                <option value="1">Pitcher</option>
+                <option value="2">Catcher</option>
+                <option value="0">Designated Hitter</option>
+            </select>
+
+        </form>
+
+
+
+        <div class="players-all-tables"></div>
 
     </div>
 

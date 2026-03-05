@@ -6,6 +6,13 @@
     <title>Base Metrics - Standings</title>
     <link rel="stylesheet" href="../styles.css" />
     <script type = "text/javascript" src="../script.js"></script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function()
+        {
+            renderStandings();
+        }, false);
+
+    </script>
 </head>
 <body>
 <main>
@@ -21,6 +28,23 @@
         </div>
 
         <a class="contact-nav-page" href="contact.html">Contact Us</a>
+
+    </div>
+
+    <div class="standings">
+
+        <h1 id="standings-title">
+            Standings
+        </h1>
+
+        <label for="standings-options"></label>
+        <select name="standings-options" id ="standings-options">
+            <option value="division">Division</option>
+            <option value="league">League</option>
+            <option value="all">MLB</option>
+        </select>
+
+        <div class="standings-all-tables"></div>
 
     </div>
 
