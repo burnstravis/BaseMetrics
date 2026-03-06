@@ -140,24 +140,16 @@ async function renderAllLiveGames() {
     })
 }
 
-const standingsData = [
-    {
-        division: "AL East",
-        teams: [
-            { team_id: 1, league: "AL", division: "East", team: "Tampa Bay Rays", wins: 100, losses: 67, ties: 0, games_back: "0.5"},
-            { team_id: 2, league: "AL", division: "East", team: "Boston Red Sox", wins: 60, losses: 84, ties: 0, games_back: "10.0"}
-        ]
-    },
-    {
-        division: "AL Central",
-        teams: [
-            { team_id: 3, league: "AL", division: "West", team: "Seattle Mariners", wins: 80, losses: 30, ties: 0, games_back: "3.5"},
-            { team_id: 4, league: "AL", division: "West", team: "Houston Astros", wins: 88, losses: 50, ties: 0, games_back: "5.0"}
-        ]
-    }
-];
 
-function renderStandings() {
+async function renderStandings() {
+
+    const standingsData = await getData("/standings");
+
+    if(!standingsData) {
+        console.log("error");
+        return;
+    }
+
     const container = document.querySelector(".standings-all-tables");
 
     if (!container) return;
@@ -193,104 +185,129 @@ function renderStandings() {
     container.innerHTML = standingsHTML;
 }
 
-const playersData = [
-    {
-        category: "Batting Average Leaders",
-        stats: [
-            { id: 101, name: "Aaron Judge", team: "NYY", g: 150, avg: ".322", hr: 58, rbi: 135 },
-            { id: 102, name: "Bobby Witt Jr.", team: "KC", g: 155, avg: ".318", hr: 32, rbi: 108 },
-            { id: 103, name: "Vladimir Guerrero Jr.", team: "TOR", g: 152, avg: ".312", hr: 30, rbi: 99 }
-        ]
-    },
-    {
-        category: "Home Run Leaders",
-        stats: [
-            { id: 101, name: "Aaron Judge", team: "NYY", g: 150, avg: ".322", hr: 58, rbi: 135 },
-            { id: 104, name: "Shohei Ohtani", team: "LAD", g: 148, avg: ".305", hr: 54, rbi: 130 },
-            { id: 105, name: "Anthony Santander", team: "BAL", g: 145, avg: ".240", hr: 44, rbi: 102 }
-        ]
+async function fetchPlayerStats(page = 0) {
+
+    const nameValue = document.getElementById("searchInput").value;
+    const isPitching = document.getElementById("toggle-pitching").classList.contains("active");
+    const posValue = document.getElementById("players-options").value;
+    console.log(nameValue);
+    const params = new URLSearchParams();
+    if(isPitching === true){
+        if (nameValue) params.append("name", nameValue);
+        params.append("position", "P");
     }
-];
+    else {
+        if (nameValue) params.append("name", nameValue);
 
-function renderPlayerLeaders() {
+        if (posValue && posValue !== "all") {
+            params.append("position", posValue);
+        } else {
+            params.append("position", "NOT_P");
+        }
+    }
+    params.append("page", page);
+    params.append("size", 80);
+    try {
+        const pageData = await getData(`/players/search?${params.toString()}`);
+
+        const players = pageData.content;
+        const totalPages = pageData.totalPages;
+        const currentPage = pageData.number;
+
+        renderPlayers(players, isPitching);
+
+    } catch (e){
+        console.error("Error fetching players", e);
+    }
+}
+
+function renderPlayers(players, isPitching) {
     const container = document.querySelector(".players-all-tables");
-
     if (!container) return;
 
-    const playersHTML = playersData.map(cat => `
-        <div class="category-wrap">
-            <h3 class="category-name">${cat.category}</h3>
-            <div class="table-responsive">
-                <table class="players-table">
-                    <thead>
+    if (!players || players.length === 0) {
+        container.innerHTML = "<p>No players found.</p>";
+        return;
+    }
+
+    const playersHTML = `
+        <div class="table-responsive">
+            <table class="players-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Player</th>
+                        <th>Pos</th>
+                        ${isPitching
+                            ? `<th>W</th><th>L</th><th>PCT</th><th>ERA</th><th>G</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>HR</th><th>SO</th><th>BB</th><th>HBP</th><th>GIDP</th><th>SB</th><th>BF</th><th>WHIP</th>`
+                            : `<th>G</th><th>AB</th><th>PA</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>2B</th><th>3B</th><th>HR</th><th>BB</th><th>R</th><th>RBI</th><th>SO</th><th>GIDP</th><th>SB</th><th>CS</th><th>HBP</th>`
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    ${players.map(player => {
+                        const stats = isPitching ? (player.pitchingStats || {}) : (player.battingStats || {});
+                        const wins = stats.wins || 0;
+                        const losses = stats.losses || 0;
+                        const winPct = (wins + losses) > 0
+                            ? (wins / (wins + losses)).toFixed(3).replace(/^0/, '')
+                            : ".000";
+                
+                        return `
                         <tr>
-                            <th class="text-left">Player</th>
-                            <th>Team</th>
-                            <th>G</th>
-                            <th>HR</th>
-                            <th>RBI</th>
-                            <th>AVG</th>
+                            <td class="player-name text-left">
+                                <a href="/player.html?player_id=${player.id}" class="player-link">
+                                    <strong>${player.fullName}</strong>
+                                </a>
+                            </td>
+                            <td>${player.position}</td>
+                            ${isPitching ? `
+                                <td>${wins}</td>
+                                <td>${losses}</td>
+                                <td>${winPct}</td>
+                                <td class="font-bold">${stats.era ?? '—'}</td>
+                                <td>${stats.gamesPlayed ?? 0}</td>
+                                <td>${stats.inningsPitched ?? '0.0'}</td>
+                                <td>${stats.hits ?? 0}</td>
+                                <td>${stats.runs ?? 0}</td>
+                                <td>${stats.earnedRuns ?? 0}</td>
+                                <td>${stats.homeRuns ?? 0}</td>
+                                <td>${stats.strikeOuts ?? 0}</td>
+                                <td>${stats.p_walks ?? 0}</td>
+                                <td>${stats.hitByPitch ?? 0}</td>
+                                <td>${stats.groundIntoDoublePlay ?? 0}</td>
+                                <td>${stats.stolenBases ?? 0}</td>
+                                <td>${stats.battersFaced ?? 0}</td>
+                                <td>${stats.whip ?? '—'}</td>
+                            ` : `
+                                <td>${stats.gamesPlayed ?? 0}</td>
+                                <td>${stats.atBats ?? 0}</td>
+                                <td>${stats.plateAppearances ?? 0}</td>
+                                <td class="font-bold">${stats.avg ?? '.000'}</td>
+                                <td>${stats.obp ?? '.000'}</td>
+                                <td>${stats.slg ?? '.000'}</td>
+                                <td>${stats.ops ?? '.000'}</td>
+                                <td>${stats.doubles ?? 0}</td>
+                                <td>${stats.triples ?? 0}</td>
+                                <td>${stats.homeRuns ?? 0}</td>
+                                <td>${stats.baseOnBalls ?? 0}</td>
+                                <td>${stats.runs ?? 0}</td>
+                                <td>${stats.rbi ?? 0}</td>
+                                <td>${stats.strikeOuts ?? 0}</td>
+                                <td>${stats.groundIntoDoublePlay ?? 0}</td>
+                                <td>${stats.stolenBases ?? 0}</td>
+                                <td>${stats.caughtStealing ?? 0}</td>
+                                <td>${stats.hitByPitch ?? 0}</td>
+                            `}
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${cat.stats.map(player => `
-                            <tr>
-                                <td class="player-name text-left">
-                                    <strong>${player.name}</strong>
-                                </td>
-                                <td>${player.team}</td>
-                                <td>${player.g}</td>
-                                <td>${player.hr}</td>
-                                <td>${player.rbi}</td>
-                                <td class="font-bold">${player.avg}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `).join('');
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>`;
 
     container.innerHTML = playersHTML;
 }
 
-const teamsData = [
-    {
-        id: 1,
-        name: "Boston Red Sox",
-        abbreviation: "BOS",
-        location: "Boston, MA",
-        image_url: "https://example.com/logos/bos.png"
-    },
-    {
-        id: 2,
-        name: "New York Yankees",
-        abbreviation: "NYY",
-        location: "Bronx, NY",
-        image_url: "https://example.com/logos/nyy.png"
-    },
-    {
-        id: 3,
-        name: "Los Angeles Dodgers",
-        abbreviation: "LAD",
-        location: "Los Angeles, CA",
-        image_url: "https://example.com/logos/lad.png"
-    },
-    {
-        id: 4,
-        name: "Chicago Cubs",
-        abbreviation: "CHC",
-        location: "Chicago, IL",
-        image_url: "https://example.com/logos/chc.png"
-    },
-    {
-        id: 5,
-        name: "Tampa Bay Rays",
-        abbreviation: "TB",
-        location: "St. Petersburg, FL",
-        image_url: "https://example.com/logos/tb.png"
-    }
-];
 
 function renderTeamList() {
     const container = document.querySelector(".teams-all-cards");
@@ -309,3 +326,7 @@ function renderTeamList() {
     </div>
     `).join('');
 }
+
+
+
+

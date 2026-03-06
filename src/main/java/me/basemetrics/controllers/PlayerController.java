@@ -5,6 +5,8 @@ import me.basemetrics.models.PlayerBio;
 import me.basemetrics.repositories.PlayerRepository;
 import me.basemetrics.repositories.PlayerBioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,14 +29,17 @@ public class PlayerController {
         return playerRepository.findAll();
     }
 
-    @GetMapping("/filter")
-    public List<Player> getPlayersByName(@RequestParam String query) {
-        return playerRepository.findByNameContainingIgnoreCase(query);
-    }
+    @GetMapping("/search")
+    public Page<Player> searchPlayers(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String position,
+            @RequestParam(defaultValue = "0") int page,    // Current page (starts at 0)
+            @RequestParam(defaultValue = "80") int size) { // Items per page
 
-    @GetMapping("/position")
-    public List<Player> getPlayersByPosition(@RequestParam String query) {
-        return playerRepository.findByPosition(query);
+        String searchName = (name != null && !name.isBlank()) ? name.trim() : null;
+        String searchPos = (position != null && !position.isBlank()) ? position.trim() : null;
+
+        return playerRepository.findByFilters(searchName, searchPos, PageRequest.of(page, size));
     }
 
     @GetMapping("/team/{teamId}")
