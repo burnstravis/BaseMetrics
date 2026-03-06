@@ -6,6 +6,10 @@
     font-display: swap;
 }
 
+:root {
+    --logo-url: url('/');
+}
+
 body {
     background: #eff0f1;
     font-family: 'Syne', sans-serif;
@@ -240,7 +244,7 @@ h1 {
     overflow: hidden;
     background-size: cover;
     background-position: center;
-    background-image: linear-gradient(rgba(44, 44, 44, 0.8), rgba(0, 0, 0, 0.8));
+    background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 39, 33));
     color: #eff0f1;
     display: flex;
 }
@@ -250,16 +254,30 @@ h1 {
     flex-direction: column;
 }
 
-.team-logo {
-    background-color: transparent;
-    background-image: linear-gradient(rgba(168, 168, 168, 0.2), rgba(255, 255, 255, 0.2));
-    display: flex;
-    align-items: center;
+.team-logo-wrapper {
+    position: relative;
     width: 128px;
     height: 128px;
-    object-fit: contain;
-    order: 2;
+
+    background-image: var(--logo-url);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
+
+.team-logo-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.2));
+    -webkit-mask-image: var(--logo-url);
+    mask-image: var(--logo-url);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
 
 .team-info {
     display: flex;
@@ -267,6 +285,7 @@ h1 {
     justify-content: space-between;
     width: 100%;
     padding: 10px;
+    font-size: 1.3rem;
 }
 
 .game-status {
@@ -311,7 +330,15 @@ h1 {
     vertical-align: middle;
 }
 
-/*runs hits errors labels*/
+.players-all-tables tr td:nth-child(n+3) {
+    vertical-align: middle;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: .2rem;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "lnum", "tnum";
+}
+
 .label {
     font-size: 1rem;
     font-weight: bold;
@@ -414,9 +441,31 @@ h1 {
     font-weight: normal;
 }
 
+.standings-all-tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.standings-all-tables[data-view="division"] .division-wrap {
+    flex: 1 1 calc(33.333% - 20px); /* Roughly 3 per row */
+    min-width: 300px;
+}
+.standings-all-tables[data-view="league"] .division-wrap {
+    flex: 1 1 calc(50% - 20px); /* Roughly 2 per row */
+    min-width: 400px;
+}
+.standings-all-tables[data-view="all"] .division-wrap {
+    flex: 1 1 100%;
+}
+
 .division-name {
     color: #00935e;
+    max-width: 330px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+}
+.division-wrap {
+    min-width: 320px;
+    flex: 1 1 auto;
 }
 
 .standings-table td, .standings-table th.text-left,
@@ -556,4 +605,9 @@ input[type="text"]:focus {
 
 .toggle-btn.active {
     border-bottom: 3px solid #00987e !important;
+}
+
+.player-name {
+    color: #00935e;
+    text-decoration: none;
 }

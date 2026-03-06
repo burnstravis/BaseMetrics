@@ -9,7 +9,17 @@
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function()
         {
-            renderStandings();
+            fetchStandingsData("division");
+
+            const selectElement = document.getElementById('standings-options');
+
+            selectElement.addEventListener('change', (event) => {
+                const selectedSort = event.target.value;
+
+                fetchStandingsData(selectedSort);
+            });
+
+
         }, false);
 
     </script>

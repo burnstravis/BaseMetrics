@@ -1,7 +1,6 @@
 package me.basemetrics.repositories;
 
 import me.basemetrics.models.Player;
-import me.basemetrics.models.PlayerBio;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

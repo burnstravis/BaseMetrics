@@ -141,50 +141,6 @@ async function renderAllLiveGames() {
 }
 
 
-async function renderStandings() {
-
-    const standingsData = await getData("/standings");
-
-    if(!standingsData) {
-        console.log("error");
-        return;
-    }
-
-    const container = document.querySelector(".standings-all-tables");
-
-    if (!container) return;
-
-    const standingsHTML = standingsData.map(div => `
-        <div class="division-wrap">
-            <h3 class="division-name">${div.division}</h3>
-            <table class="standings-table">
-                <thead>
-                    <tr>
-                        <th class="text-left">Team</th>
-                        <th>W</th>
-                        <th>L</th>
-                        <th>PCT</th>
-                        <th>GB</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${div.teams.map(team => `
-                        <tr>
-                            <td class="team-name"><strong>${team.team}</strong></td>
-                            <td>${team.wins}</td>
-                            <td>${team.losses}</td>
-                            <td>${(team.wins / (team.wins + team.losses)).toPrecision(3)}</td>
-                            <td>${team.games_back}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `).join('');
-
-    container.innerHTML = standingsHTML;
-}
-
 async function fetchPlayerStats(page = 0) {
 
     const nameValue = document.getElementById("searchInput").value;
@@ -255,7 +211,7 @@ function renderPlayers(players, isPitching) {
                         return `
                         <tr>
                             <td class="player-name text-left">
-                                <a href="/player.html?player_id=${player.id}" class="player-link">
+                                <a href="/player.html?player_id=${player.id}" class="player-name">
                                     <strong>${player.fullName}</strong>
                                 </a>
                             </td>
@@ -308,23 +264,135 @@ function renderPlayers(players, isPitching) {
     container.innerHTML = playersHTML;
 }
 
+async function fetchTeamData(){
 
-function renderTeamList() {
+    const teamsData = await getData("/teams/all");
+
+    if(!teamsData) {
+        console.log("error");
+        return;
+    }
+
+    try{
+        renderTeamList(teamsData);
+    } catch (e){
+        console.error(e);
+    }
+
+}
+
+function renderTeamList(teamsData) {
     const container = document.querySelector(".teams-all-cards");
     if (!container) return;
-
     container.innerHTML = teamsData.map(team => `
     <div class="team-card" data-id="${team.id}">
         <div class="team-info">
             <div class="team-text-wrapper">
                 <h4 class="team-title">${team.name} (${team.abbreviation})</h4>
-                <p class="team-location">${team.location}</p>
+                <p class="team-location">${team.locationName}</p>
             </div>
             
-            <img src="${team.image_url}" alt="${team.name} logo" class="team-logo">
-        </div>
+            <div class="team-logo-wrapper" style="--logo-url: url('${team.image_url}')"></div>      
+         </div>
     </div>
     `).join('');
+}
+
+async function fetchStandingsData(sort){
+
+    const standingsData = await getData("/standings/all");
+
+    if(!standingsData) {
+        console.log("error");
+        return;
+    }
+
+    try{
+        renderStandings(standingsData, sort);
+    } catch (e){
+        console.error(e);
+    }
+
+}
+
+function renderStandings(standingsData, sort) {
+    if (!standingsData || standingsData.length === 0) return;
+
+    const container = document.querySelector(".standings-all-tables");
+    if (!container) return;
+
+    container.setAttribute('data-view', sort);
+
+    let grouped = {};
+
+    // 1. Group the data
+    if(sort === "division") {
+        grouped = standingsData.reduce((acc, team) => {
+            const divName = team.division || "Unknown"; //
+            if (!acc[divName]) acc[divName] = [];
+            acc[divName].push(team);
+            return acc;
+        }, {});
+    } else if (sort === "league") {
+        grouped = standingsData.reduce((acc, team) => {
+            const leagueName = team.league || "Unknown"; //
+            if (!acc[leagueName]) acc[leagueName] = [];
+            acc[leagueName].push(team);
+            return acc;
+        }, {});
+    } else {
+        grouped = {"Major League Baseball": standingsData};
+    }
+
+    let groupedEntries = Object.entries(grouped).sort((a, b) => {
+        const leagueA = a[1][0].league || "";
+        const leagueB = b[1][0].league || "";
+        return leagueA.localeCompare(leagueB);
+    });
+
+    const standingsHTML = groupedEntries.map(([groupName, teams]) => {
+        // Sort teams within the group by wins
+        teams.sort((a, b) => b.wins - a.wins);
+
+        return `
+        <div class="division-wrap">
+            <h3 class="division-name">${groupName}</h3>
+            <table class="standings-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Team</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>PCT</th>
+                        <th>GB</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${teams.map(team => {
+            const winPct = (team.wins + team.losses) > 0
+                ? (team.wins / (team.wins + team.losses)).toFixed(3)
+                : ".000";
+
+            return `
+                        <tr>
+                            <td class="team-cell">
+                                <div class="team-logo-stencil" 
+                                     style="--logo-url: url('https://www.mlbstatic.com/team-logos/${team.team_id}.svg')">
+                                </div>
+                                <strong>${team.teamName}</strong>
+                            </td>
+                            <td>${team.wins}</td>
+                            <td>${team.losses}</td>
+                            <td>${winPct}</td>
+                            <td>${team.gamesBack === 0 ? '-' : team.gamesBack}</td>
+                        </tr>`;
+        }).join('')}
+                </tbody>
+            </table>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = standingsHTML;
 }
 
 

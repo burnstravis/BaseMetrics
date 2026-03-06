@@ -13,5 +13,6 @@ public class BaseMetricsApplication {
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
         SpringApplication.run(BaseMetricsApplication.class, args);
+        System.out.println("http://localhost:8080/html/index.html");
     }
 }
