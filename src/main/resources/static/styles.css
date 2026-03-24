@@ -234,6 +234,15 @@ h1 {
     width: 100%;
 }
 
+.games-all-cards.home {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+}
+
 .games-header {
     grid-column: 1 / -1;
 }
@@ -418,8 +427,14 @@ h1 {
 }
 
 .contact-container {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80%;
+    width: 100%;
     color: rgba(0, 0, 0, 0.8);
     padding: 1rem;
+    display: block;
 }
 
 #contact-git, #contact-email{
