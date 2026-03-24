@@ -17,7 +17,6 @@
             const filterPos = document.getElementById("players-options");
             const filterPosTitle = document.getElementById("filter-pos");
 
-
             function handleToggle(clickedBtn) {
                 hittingBtn.classList.remove("active");
                 pitchingBtn.classList.remove("active");
@@ -43,8 +42,7 @@
             });
 
 
-            document.getElementById("players-options").addEventListener("submit", function(e) {
-                e.preventDefault();
+            document.getElementById("players-options").addEventListener("change", (event) => {
                 fetchPlayerStats(0);
             });
 
@@ -70,38 +68,49 @@
 
     <div class="players">
 
-        <h1 id="players-title">
-            Player Statistics
-        </h1>
-        <button id="toggle-hitting" class="toggle-btn active">Hitting</button>
-        <button id="toggle-pitching" class="toggle-btn">Pitching</button>
-        <form id="searchForm">
+        <div class="players-header">
 
-            <h1 id="filter-name">Filter by Name</h1>
-            <input type="text" id="searchInput" placeholder="name" autocomplete="off" autocapitalize="off">
-            <label for="players-options"></label>
-            <h1 id="filter-pos">Filter by Position</h1>
-            <select name="players-options" id ="players-options">
-                <option value="all">All Positions</option>
-                <option value="1B">1st Base</option>
-                <option value="2B">2nd Base</option>
-                <option value="3B">3rd Base</option>
-                <option value="SS">Short Stop</option>
-                <option value="LF">Left Field</option>
-                <option value="CF">Center Field</option>
-                <option value="RF">Right Field</option>
-                <option value="OF">Outfield</option>
-                <option value="C">Catcher</option>
-                <option value="DH">Designated Hitter</option>
-            </select>
+            <h1 id="players-title">
+                Player Statistics
+            </h1>
 
-        </form>
+            <div id="toggle-buttons">
+                <button id="toggle-hitting" class="toggle-btn active">Hitting</button>
+                <button id="toggle-pitching" class="toggle-btn">Pitching</button>
+            </div>
 
+            <form id="searchForm">
 
+                <div>
+                    <h1 id="filter-name">Filter by Name</h1>
+                    <input type="text" id="searchInput" placeholder="name" autocomplete="off" autocapitalize="off">
+                </div>
+                <label for="players-options"></label>
+                <div>
+                    <h1 id="filter-pos">Filter by Position</h1>
+                    <select name="players-options" id ="players-options">
+                        <option value="all">All Positions</option>
+                        <option value="1B">1st Base</option>
+                        <option value="2B">2nd Base</option>
+                        <option value="3B">3rd Base</option>
+                        <option value="SS">Short Stop</option>
+                        <option value="LF">Left Field</option>
+                        <option value="CF">Center Field</option>
+                        <option value="RF">Right Field</option>
+                        <option value="OF">Outfield</option>
+                        <option value="C">Catcher</option>
+                        <option value="DH">Designated Hitter</option>
+                    </select>
+                </div>
+            </form>
+
+        </div>
 
         <div class="players-all-tables"></div>
 
     </div>
+
+
 
 </main>
 </body>

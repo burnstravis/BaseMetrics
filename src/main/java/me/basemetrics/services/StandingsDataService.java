@@ -74,6 +74,8 @@ public class StandingsDataService {
                     int teamId = teamRecord.path("team").path("id").asInt();
 
                     JsonNode extraData = teamLookup.get(teamId);
+                    JsonNode streakNode = teamRecord.path("streak");
+                    JsonNode recordsNode = teamRecord.path("records");
 
                     Standings standing = new Standings(
                             teamRecord.path("team"),
@@ -83,7 +85,11 @@ public class StandingsDataService {
                             teamRecord.path("wins").asInt(),
                             teamRecord.path("losses").asInt(),
                             now,
-                            (float) teamRecord.path("gamesBack").asDouble()
+                            (float) teamRecord.path("gamesBack").asDouble(),
+                            (float) teamRecord.path("wildCardGamesBack").asDouble(),
+                            (float) teamRecord.path("leagueGamesBack").asDouble(),
+                            streakNode,
+                            recordsNode
                     );
 
                     allStandings.add(standing);

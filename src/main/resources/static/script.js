@@ -1,5 +1,3 @@
-//placeholder
-
 const API_BASE_URL = "http://localhost:8080/api";
 
 async function getData(endpoint) {
@@ -93,6 +91,13 @@ async function renderAllLiveGames() {
 
     const results = document.querySelector(".games-all-cards");
 
+    const gameHeader = `
+        <div class="games-header">
+            <h1 id="games-title">Live Games</h1>
+            <p id="games-message">View all the action happening right now</p>
+        </div>
+    `;
+
     if (!results) {
         return;
     }
@@ -133,8 +138,52 @@ async function renderAllLiveGames() {
     }
 
     live.sort((a, b) => b.game.inning - a.game.inning || (b.game.outs || 0) - (a.game.outs || 0));
-    scheduled.sort((a, b) => a.game.home_team.localeCompare(b.game.home_team));
+    scheduled.sort((a, b) => a.game.home_team_name.localeCompare(b.game.home_team_name));
     const displayOrder = [...live, ...(hour >= 5 ? scheduled : []), ...finals];
+    results.innerHTML += gameHeader;
+    displayOrder.forEach(item => {
+        results.innerHTML += item.card;
+    })
+}
+
+async function renderOnlyLiveGames(){
+    const gamesData = await getData("/games/live");
+
+    if(!gamesData) {
+        console.log("error");
+        return;
+    }
+
+    const results = document.querySelector(".games-all-cards");
+
+    if (!results) {
+        return;
+    }
+
+    const hour = new Date().getHours();
+
+    const scheduled = [];
+    const live = [];
+
+    try {
+        gamesData.forEach(game => {
+            const status = getGameStatus(game);
+            const inning = game.inning || 0;
+            const isFinal = status === "Final" && inning > 0;
+            const isLive = status !== "Scheduled" && !isFinal;
+
+            if (isLive) {
+                live.push({ game, card: createGameCard(game, status) });
+            }
+
+        });
+    } catch (e) {
+        console.log(e);
+    }
+
+    live.sort((a, b) => b.game.inning - a.game.inning || (b.game.outs || 0) - (a.game.outs || 0));
+    scheduled.sort((a, b) => a.game.home_team_name.localeCompare(b.game.home_team_name));
+    const displayOrder = [...live, ...(hour >= 5 ? scheduled : [])];
     displayOrder.forEach(item => {
         results.innerHTML += item.card;
     })
@@ -284,7 +333,11 @@ async function fetchTeamData(){
 function renderTeamList(teamsData) {
     const container = document.querySelector(".teams-all-cards");
     if (!container) return;
-    container.innerHTML = teamsData.map(team => `
+    const titleCard = `
+    <h1 id="teams-title">Teams</h1>
+    `;
+
+    container.innerHTML =  titleCard + teamsData.map(team => `
     <div class="team-card" data-id="${team.id}">
         <div class="team-info">
             <div class="team-text-wrapper">
@@ -318,6 +371,15 @@ async function fetchStandingsData(sort){
 function renderStandings(standingsData, sort) {
     if (!standingsData || standingsData.length === 0) return;
 
+    const divisionOrder = {
+        "American League East": 1,
+        "American League Central": 2,
+        "American League West": 3,
+        "National League East": 4,
+        "National League Central": 5,
+        "National League West": 6
+    };
+
     const container = document.querySelector(".standings-all-tables");
     if (!container) return;
 
@@ -325,7 +387,6 @@ function renderStandings(standingsData, sort) {
 
     let grouped = {};
 
-    // 1. Group the data
     if(sort === "division") {
         grouped = standingsData.reduce((acc, team) => {
             const divName = team.division || "Unknown"; //
@@ -345,15 +406,24 @@ function renderStandings(standingsData, sort) {
     }
 
     let groupedEntries = Object.entries(grouped).sort((a, b) => {
-        const leagueA = a[1][0].league || "";
-        const leagueB = b[1][0].league || "";
-        return leagueA.localeCompare(leagueB);
+        const nameA = a[0];
+        const nameB = b[0];
+
+        if (sort === "division") {
+            const rankA = divisionOrder[nameA];
+            const rankB = divisionOrder[nameB];
+
+            if (rankA !== rankB) {
+                return rankA - rankB;
+            }
+        }
+
+        else return null;
     });
 
     const standingsHTML = groupedEntries.map(([groupName, teams]) => {
         // Sort teams within the group by wins
         teams.sort((a, b) => b.wins - a.wins);
-
         return `
         <div class="division-wrap">
             <h3 class="division-name">${groupName}</h3>
@@ -365,6 +435,13 @@ function renderStandings(standingsData, sort) {
                         <th>L</th>
                         <th>PCT</th>
                         <th>GB</th>
+                        <th>WCGB</th>
+                        <th>L10</th>
+                        <th>STRK</th>
+                        <th>X-W/L</th>
+                        <th>HOME</th>
+                        <th>AWAY</th>
+                        <th>>.500</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -373,6 +450,9 @@ function renderStandings(standingsData, sort) {
                 ? (team.wins / (team.wins + team.losses)).toFixed(3)
                 : ".000";
 
+            const xWinPct = (team.expectedWins + team.expectedLosses) > 0
+                ? (team.expectedWins / (team.expectedWins + team.expectedLosses)).toFixed(3)
+                : ".000";
             return `
                         <tr>
                             <td class="team-cell">
@@ -385,6 +465,13 @@ function renderStandings(standingsData, sort) {
                             <td>${team.losses}</td>
                             <td>${winPct}</td>
                             <td>${team.gamesBack === 0 ? '-' : team.gamesBack}</td>
+                            <td>${team.wildCardGamesBack}</td>
+                            <td>${team.lastTenWins} - ${team.lastTenLosses}</td>
+                            <td>${team.streakCode}</td>
+                            <td>${xWinPct}</td>
+                            <td>${team.homeWins} - ${team.homeLosses}</td>
+                            <td>${team.awayWins} - ${team.awayLosses}</td>
+                            <td>${team.above500Wins} - ${team.above500Losses}</td>
                         </tr>`;
         }).join('')}
                 </tbody>
