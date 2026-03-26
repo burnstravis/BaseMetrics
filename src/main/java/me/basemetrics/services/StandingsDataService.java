@@ -38,8 +38,7 @@ public class StandingsDataService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String date = now.format(formatter);
         String year = String.valueOf(now.getYear());
-        //"https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=" + year + "&standingsTypes=regularSeason&date=" + date;
-        return "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=2025&standingsTypes=regularSeason&date=2025-08-22";
+        return "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=" + year + "&standingsTypes=regularSeason&date=" + date;
     }
 
     public static String getExtraStatsUrl(){

@@ -1,5 +1,6 @@
 package me.basemetrics.services;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.StructuredTaskScope;
@@ -9,6 +10,10 @@ import me.basemetrics.models.Player;
 import me.basemetrics.repositories.PlayerRepository;
 import me.basemetrics.repositories.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.net.URI;
@@ -39,6 +44,7 @@ public class PlayerDataService {
 
     //@Scheduled(initialDelay = 15000, fixedRate = 43200000)
     @Transactional
+    @CacheEvict(value = "players", allEntries = true)
     public void updateAllPlayers() {
         Map<Integer, Integer> playerToTeamMap = new java.util.HashMap<>();
 
@@ -95,8 +101,11 @@ public class PlayerDataService {
         try {
             mlbApiSemaphore.acquire();
 
+            LocalDateTime now = LocalDateTime.now();
+            String year = String.valueOf(now.getYear());
+
             String url = "https://statsapi.mlb.com/api/v1/people/" + playerId +
-                    "?hydrate=stats(group=[hitting,pitching],type=[season],season=2025)";
+                    "?hydrate=stats(group=[hitting,pitching],type=[season],season=" + year + ")";
 
             HttpRequest request = HttpRequest.newBuilder(URI.create(url)).build();
             var response = CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
@@ -128,6 +137,23 @@ public class PlayerDataService {
             playerRepository.deleteAll(toDelete);
             System.out.println("Cleaned up " + toDelete.size() + " non-rostered players.");
         }
+    }
+
+    @Cacheable(value = "players",
+            key = "'search-' + #name + '-' + #pos + '-' + #pageRequest.pageNumber",
+            condition = "#name == null")
+    public Page<Player> getPagedPlayers(String name, String pos, PageRequest pageRequest) {
+        return playerRepository.findByFilters(name, pos, pageRequest);
+    }
+
+    @Cacheable(value = "players", key = "'team-' + #teamId")
+    public List<Player> getPlayersByTeam(int teamId) {
+        return playerRepository.findByTeamId(teamId);
+    }
+
+    @Cacheable(value = "players", key = "#id")
+    public Player getPlayerFromDb(int id) {
+        return playerRepository.findById(id).orElse(null);
     }
 
 }

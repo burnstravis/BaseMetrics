@@ -2,6 +2,7 @@ package me.basemetrics.controllers;
 
 import me.basemetrics.models.Team;
 import me.basemetrics.repositories.TeamRepository;
+import me.basemetrics.services.TeamDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,15 +14,15 @@ import java.util.List;
 public class TeamController {
 
     @Autowired
-    private TeamRepository teamRepository;
+    private TeamDataService teamDataService;
 
     @GetMapping("/all")
     public List<Team> getAllTeams() {
-        return teamRepository.findAll();
+        return teamDataService.getAllTeams();
     }
 
     @GetMapping("/team/{teamId}")
     public Team getByTeam(@PathVariable int teamId) {
-        return teamRepository.findById(teamId);
+        return teamDataService.getTeamFromDb(teamId); // Now this is cached!
     }
 }

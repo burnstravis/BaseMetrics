@@ -1,7 +1,7 @@
 package me.basemetrics.controllers;
 
 import me.basemetrics.models.LiveGame;
-import me.basemetrics.repositories.LiveGameRepository;
+import me.basemetrics.services.LiveGameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +16,10 @@ import java.util.List;
 public class LiveGameController {
 
     @Autowired
-    private LiveGameRepository liveGameRepository;
+    private LiveGameService liveGameService;
 
     @GetMapping("/live")
     public List<LiveGame> getLiveGames() {
-        return liveGameRepository.findAll();
+        return liveGameService.getLiveGamesFromDb();
     }
 }

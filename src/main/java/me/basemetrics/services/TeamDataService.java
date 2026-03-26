@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.basemetrics.models.Team;
 import me.basemetrics.repositories.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -62,6 +65,7 @@ public class TeamDataService {
 
     }
 
+    @Cacheable(value = "teams", key = "#teamId")
     public Team fetchTeamData(int teamId) throws Exception {
 
         try {
@@ -97,7 +101,8 @@ public class TeamDataService {
         ));
     }
 
-    //@Scheduled(cron = "0 0 5 * * *")
+    @Scheduled(cron = "0 0 5 * * *")
+    @CacheEvict(value = "teams", allEntries = true)
     public void updateAllTeams(){
 
         List<Integer> teamIds = getTeamIds();
@@ -124,6 +129,16 @@ public class TeamDataService {
             e.printStackTrace();
         }
 
+    }
+
+    @Cacheable(value = "teams", key = "'allTeams'")
+    public List<Team> getAllTeams() {
+        return teamRepository.findAll();
+    }
+
+    @Cacheable(value = "teams", key = "#id")
+    public Team getTeamFromDb(int id) {
+        return teamRepository.findById(id);
     }
 
 }

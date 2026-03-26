@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.basemetrics.models.LiveGame;
 import me.basemetrics.repositories.LiveGameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,11 +34,19 @@ public class LiveGameService {
     public static final boolean YESTERDAY = false;
 
 
-    //@Scheduled(initialDelay = 5000, fixedRate = 15000)    @Transactional
+    @Scheduled(initialDelay = 60000, fixedRate = 15000)
+    @Transactional
+    @CacheEvict(value = "liveGames", allEntries = true)
     public void updateAllLiveGames() {
         try {
+
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(2);
+            liveGameRepository.deleteOldGames(cutoff);
+
             List<Integer> liveGameIds = getAllLiveGameIds(TODAY);
             liveGameIds.addAll(getAllLiveGameIds(YESTERDAY));
+            System.out.println("Combined Game Ids Between Yesterday and Today: " + liveGameIds);
+
 
             if (liveGameIds.isEmpty()) return;
 
@@ -64,8 +76,9 @@ public class LiveGameService {
         DateTimeFormatter formatter;
 
         if(day == YESTERDAY){
-            now = LocalDateTime.now().minusDays(1);
+            now = now.minusDays(1);
         }
+
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = now.format(formatter);
         return "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=" + formattedDate;
@@ -118,6 +131,11 @@ public class LiveGameService {
         }
 
         return null;
+    }
+
+    @Cacheable(value = "liveGames", key = "'all'")
+    public List<LiveGame> getLiveGamesFromDb() {
+        return liveGameRepository.findAll();
     }
 
 }
