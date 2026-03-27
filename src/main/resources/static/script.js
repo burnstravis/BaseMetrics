@@ -93,7 +93,7 @@ async function renderAllLiveGames() {
 
     const gameHeader = `
         <div class="games-header">
-            <h1 id="games-title">Live Games</h1>
+            <h1 id="games-title">Today's Games</h1>
             <p id="games-message">View all the action happening right now</p>
         </div>
     `;
@@ -140,7 +140,7 @@ async function renderAllLiveGames() {
     live.sort((a, b) => b.game.inning - a.game.inning || (b.game.outs || 0) - (a.game.outs || 0));
     scheduled.sort((a, b) => a.game.home_team_name.localeCompare(b.game.home_team_name));
     const displayOrder = [...live, ...(hour >= 5 ? scheduled : []), ...finals];
-    results.innerHTML += gameHeader;
+    results.innerHTML = gameHeader;
     displayOrder.forEach(item => {
         results.innerHTML += item.card;
     })
@@ -387,11 +387,14 @@ function renderStandings(standingsData, sort) {
 
     let grouped = {};
 
+    let gamesBack = null;
+
     if(sort === "division") {
         grouped = standingsData.reduce((acc, team) => {
             const divName = team.division || "Unknown"; //
             if (!acc[divName]) acc[divName] = [];
             acc[divName].push(team);
+            gamesBack = "gamesBack";
             return acc;
         }, {});
     } else if (sort === "league") {
@@ -399,10 +402,12 @@ function renderStandings(standingsData, sort) {
             const leagueName = team.league || "Unknown"; //
             if (!acc[leagueName]) acc[leagueName] = [];
             acc[leagueName].push(team);
+            gamesBack = "leagueGamesBack";
             return acc;
         }, {});
     } else {
         grouped = {"Major League Baseball": standingsData};
+        gamesBack = "gamesBack";
     }
 
     let groupedEntries = Object.entries(grouped).sort((a, b) => {
@@ -423,7 +428,20 @@ function renderStandings(standingsData, sort) {
 
     const standingsHTML = groupedEntries.map(([groupName, teams]) => {
         // Sort teams within the group by wins
-        teams.sort((a, b) => b.wins - a.wins);
+
+        teams.sort((a, b) => {
+            const pctA = (a.wins + a.losses) > 0 ? (a.wins / (a.wins + a.losses)) : 0;
+            const pctB = (b.wins + b.losses) > 0 ? (b.wins / (b.wins + b.losses)) : 0;
+
+            if (pctB !== pctA) {
+                return pctB - pctA;
+            }
+            if (a.losses !== b.losses) {
+                return a.losses - b.losses;
+            }
+            return b.wins - a.wins;
+        });
+
         return `
         <div class="division-wrap">
             <h3 class="division-name">${groupName}</h3>
@@ -435,7 +453,6 @@ function renderStandings(standingsData, sort) {
                         <th>L</th>
                         <th>PCT</th>
                         <th>GB</th>
-                        <th>WCGB</th>
                         <th>L10</th>
                         <th>STRK</th>
                         <th>X-W/L</th>
@@ -448,11 +465,14 @@ function renderStandings(standingsData, sort) {
                     ${teams.map(team => {
             const winPct = (team.wins + team.losses) > 0
                 ? (team.wins / (team.wins + team.losses)).toFixed(3)
-                : ".000";
+                : "0.000";
 
             const xWinPct = (team.expectedWins + team.expectedLosses) > 0
                 ? (team.expectedWins / (team.expectedWins + team.expectedLosses)).toFixed(3)
-                : ".000";
+                : "0.000";
+            
+            const gb = (team.gamesBack.toString() === gamesBack) ? (team.gamesBack) : (team.leagueGamesBack);
+            
             return `
                         <tr>
                             <td class="team-cell">
@@ -464,10 +484,9 @@ function renderStandings(standingsData, sort) {
                             <td>${team.wins}</td>
                             <td>${team.losses}</td>
                             <td>${winPct}</td>
-                            <td>${team.gamesBack === 0 ? '-' : team.gamesBack}</td>
-                            <td>${team.wildCardGamesBack}</td>
+                            <td>${gb === 0 ? '-' : gb}</td>
                             <td>${team.lastTenWins} - ${team.lastTenLosses}</td>
-                            <td>${team.streakCode}</td>
+                            <td>${team.streakCode === "" ? '-' : team.streakCode}</td>
                             <td>${xWinPct}</td>
                             <td>${team.homeWins} - ${team.homeLosses}</td>
                             <td>${team.awayWins} - ${team.awayLosses}</td>

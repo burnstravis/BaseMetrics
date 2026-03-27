@@ -49,7 +49,7 @@ public class Standings {
     @Column(name = "last_ten_wins")
     private int lastTenWins;
 
-    @Column(name = "last_ten_lossess")
+    @Column(name = "last_ten_losses")
     private int lastTenLosses;
 
     @Column(name = "above500_wins")

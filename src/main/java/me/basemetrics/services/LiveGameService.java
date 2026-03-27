@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.basemetrics.models.LiveGame;
 import me.basemetrics.repositories.LiveGameRepository;
+import me.basemetrics.repositories.StandingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,6 +27,9 @@ public class LiveGameService {
 
     @Autowired
     private LiveGameRepository liveGameRepository;
+
+    @Autowired
+    private StandingsDataService standingsDataService;
 
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -63,6 +67,23 @@ public class LiveGameService {
                         .filter(java.util.Objects::nonNull)
                         .toList();
 
+                boolean triggerStandingsUpdate = false;
+
+
+                for(LiveGame updatedGame: games) {
+
+                    LiveGame oldGame = liveGameRepository.findById(updatedGame.getGame_id()).orElse(null);
+
+                    if(isFinal(updatedGame)) {
+                        if(oldGame == null || !isFinal(oldGame)) {
+                            System.out.println("Game " + updatedGame.getGame_id() + " is final, updating standings ");
+                            triggerStandingsUpdate = true;
+                        }
+                    }
+                }
+                if (triggerStandingsUpdate) {
+                    standingsDataService.updateStandings();
+                }
                 liveGameRepository.saveAll(games);
                 System.out.println("Successfully updated " + games.size() + " live games.");
             }
@@ -131,6 +152,18 @@ public class LiveGameService {
         }
 
         return null;
+    }
+
+    public boolean isFinal(LiveGame game){
+        if (game.getInning() >= 9) {
+        String half = game.getInning_half().toLowerCase();
+            if ((half.equals("bottom") && game.getHome_score() > game.getAway_score()) ||
+                    (half.equals("top") && game.getOuts() == 3 && game.getHome_score() > game.getAway_score()) ||
+                    (half.equals("bottom") && game.getOuts() == 3)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Cacheable(value = "liveGames", key = "'all'")
