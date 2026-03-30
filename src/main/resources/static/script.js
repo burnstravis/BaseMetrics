@@ -344,9 +344,7 @@ function renderTeamList(teamsData) {
                 <h4 class="team-title">${team.name} (${team.abbreviation})</h4>
                 <p class="team-location">${team.locationName}</p>
             </div>
-            
-            <div class="team-logo-wrapper" style="--logo-url: url('${team.image_url}')"></div>      
-         </div>
+            <div class="team-logo-wrapper" style="--logo-url: url(/images/${team.id}.svg)"></div>         </div>
     </div>
     `).join('');
 }

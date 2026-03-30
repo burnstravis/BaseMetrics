@@ -114,7 +114,7 @@ h1 {
     display: inline-block;
     background-size: cover;
     background-position: center;
-    background-image: linear-gradient(rgba(0, 147, 94, 0.92), rgba(7, 7, 35, 0.92)), url("./images/home.jpg");
+    background-image: linear-gradient(rgba(0, 147, 94, 0.92), rgba(7, 7, 35, 0.92)), url("./images/home.webp");
 }
 
 .welcome-container img{
@@ -272,9 +272,21 @@ h1 {
     overflow: hidden;
     background-size: cover;
     background-position: center;
-    background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 39, 33));
-    color: #eff0f1;
+    background-image: radial-gradient(rgba(0, 152, 126, 0.89) 5%, rgba(152, 152, 152, 0.5) 80%);    color: #ffffff;
     display: flex;
+}
+
+.team-text-wrapper {
+    color: #ffffff;
+}
+
+.team-title {
+    font-weight: bolder;
+}
+
+.team-location {
+    font-size: 1rem;
+    font-style: italic;
 }
 
 .team-text-wrapper {
@@ -291,19 +303,6 @@ h1 {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-}
-
-.team-logo-wrapper::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.2));
-    -webkit-mask-image: var(--logo-url);
-    mask-image: var(--logo-url);
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
 }
 
 
